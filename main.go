@@ -141,6 +141,22 @@ func da(cw *cloudwatch.CloudWatch, name string) error {
 	return req.Send()
 }
 
+func daRecursive(cw *cloudwatch.CloudWatch, name string) error {
+	parentNames, err := parents(cw, name)
+	if err != nil {
+		return err
+	}
+	for _, pn := range parentNames {
+		if err := daRecursive(cw, pn); err != nil {
+			return err
+		}
+	}
+	if err := da(cw, name); err != nil {
+		return err
+	}
+	return nil
+}
+
 // describeStates fetches the state value for each composite alarm in the
 // input.  It uses the same order in the output as specified in the input
 // (something which DescribeAlarms does not do, and I was expect to).

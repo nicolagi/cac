@@ -142,31 +142,15 @@ func (rca *rippleCarryAdder) saveGraph(w io.Writer) error {
 
 func (rca *rippleCarryAdder) remove() error {
 	for i := 0; i < 8; i++ {
-		if err := rca.removeFrom(rca.adders[i].leftIn); err != nil {
+		if err := daRecursive(rca.cw, rca.adders[i].leftIn); err != nil {
 			return err
 		}
-		if err := rca.removeFrom(rca.adders[i].rightIn); err != nil {
+		if err := daRecursive(rca.cw, rca.adders[i].rightIn); err != nil {
 			return err
 		}
-		if err := rca.removeFrom(rca.adders[i].carryIn); err != nil {
+		if err := daRecursive(rca.cw, rca.adders[i].carryIn); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func (rca *rippleCarryAdder) removeFrom(child string) error {
-	parentNames, err := parents(rca.cw, child)
-	if err != nil {
-		return err
-	}
-	for _, pn := range parentNames {
-		if err := rca.removeFrom(pn); err != nil {
-			return err
-		}
-	}
-	if err := da(rca.cw, child); err != nil {
-		return err
 	}
 	return nil
 }

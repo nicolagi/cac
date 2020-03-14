@@ -1,24 +1,32 @@
 package main
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 )
 
-var evaluationLatency = 3 * time.Second
-
 func TestHalfAdderTruthTable(t *testing.T) {
+	if profile == "" {
+		t.Skip("Supply test profile with -profile to run this test.")
+	}
+	b := make([]byte, 16)
+	rand.Read(b)
+	suffix := fmt.Sprintf(":%x", b)
 	cw, err := defaultClient()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := pcab(cw, "left", false); err != nil {
+	if err := pcab(cw, "left"+suffix, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := pcab(cw, "right", false); err != nil {
+	defer func() { _ = daRecursive(cw, "left"+suffix) }()
+	if err := pcab(cw, "right"+suffix, false); err != nil {
 		t.Fatal(err)
 	}
-	ha := &halfAdder{cw: cw, name: "test", leftIn: "left", rightIn: "right"}
+	defer func() { _ = daRecursive(cw, "right"+suffix) }()
+	ha := &halfAdder{cw: cw, name: "test" + suffix, leftIn: "left" + suffix, rightIn: "right" + suffix}
 	if err := ha.build(); err != nil {
 		t.Fatal(err)
 	}

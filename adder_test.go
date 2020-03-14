@@ -1,25 +1,36 @@
 package main
 
 import (
+	"fmt"
+	"math/rand"
 	"testing"
 	"time"
 )
 
 func TestAdderTruthTable(t *testing.T) {
+	if profile == "" {
+		t.Skip("Supply test profile with -profile to run this test.")
+	}
+	b := make([]byte, 16)
+	rand.Read(b)
+	suffix := fmt.Sprintf(":%x", b)
 	cw, err := defaultClient()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := pcab(cw, "left", false); err != nil {
+	if err := pcab(cw, "left"+suffix, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := pcab(cw, "right", false); err != nil {
+	defer func() { _ = daRecursive(cw, "left"+suffix) }()
+	if err := pcab(cw, "right"+suffix, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := pcab(cw, "carry-input", false); err != nil {
+	defer func() { _ = daRecursive(cw, "right"+suffix) }()
+	if err := pcab(cw, "carry-input"+suffix, false); err != nil {
 		t.Fatal(err)
 	}
-	a := newAdder(cw, "test", "left", "right", "carry-input")
+	defer func() { _ = daRecursive(cw, "carry-input"+suffix) }()
+	a := newAdder(cw, "test"+suffix, "left"+suffix, "right"+suffix, "carry-input"+suffix)
 	if err := a.build(); err != nil {
 		t.Fatal(err)
 	}
